@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Clock</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="box" id="hour">
+    <div class="time"></div>
+    <div class="hex"></div>
+</div>
+
+<div class="box" id="minute">
+    <div class="time"></div>
+    <div class="hex"></div>
+</div>
+
+<div class="box" id="second">
+    <div class="time"></div>
+    <div class="hex"></div>
+</div>
+
+<script>
+const hourBox = document.getElementById('hour');
+const minuteBox = document.getElementById('minute');
+const secondBox = document.getElementById('second');
+
+function randomColor() {
+    return {
+        r: Math.floor(Math.random() * 256),
+        g: Math.floor(Math.random() * 256),
+        b: Math.floor(Math.random() * 256)
+    };
+}
+
+function rgbToHex(r, g, b) {
+    return "#" + [r, g, b]
+        .map(x => x.toString(16).padStart(2, '0'))
+        .join('')
+        .toUpperCase();
+}
+
+function getContrastColor(r, g, b) {
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 128 ? 'black' : 'white';
+}
+
+function applyColor(box) {
+    const color = randomColor();
+    const hex = rgbToHex(color.r, color.g, color.b);
+
+    box.style.backgroundColor = hex;
+    box.style.color = getContrastColor(color.r, color.g, color.b);
+
+    const hexElement = box.querySelector('.hex');
+    hexElement.textContent = hex;
+
+    hexElement.onclick = () => {
+        navigator.clipboard.writeText(hex);
+        hexElement.textContent = "Copied!";
+        setTimeout(() => {
+            hexElement.textContent = hex;
+        }, 800);
+    };
+}
+
+let lastHour = -1;
+let lastMinute = -1;
+let lastSecond = -1;
+
+function updateClock() {
+    const now = new Date();
+
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    const second = now.getSeconds();
+
+    hourBox.querySelector('.time').textContent = hour.toString().padStart(2, '0');
+    minuteBox.querySelector('.time').textContent = minute.toString().padStart(2, '0');
+    secondBox.querySelector('.time').textContent = second.toString().padStart(2, '0');
+
+    if (hour !== lastHour) {
+        applyColor(hourBox);
+        lastHour = hour;
+    }
+
+    if (minute !== lastMinute) {
+        applyColor(minuteBox);
+        lastMinute = minute;
+    }
+
+    if (second !== lastSecond) {
+        applyColor(secondBox);
+        lastSecond = second;
+    }
+}
+
+setInterval(updateClock, 100);
+updateClock();
+
+let hexVisible = true;
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === "Shift" && !e.repeat) {
+        hexVisible = !hexVisible;
+        document.querySelectorAll('.hex').forEach(el => {
+            el.classList.toggle('hidden', !hexVisible);
+        });
+    }
+});
+</script>
+
+</body>
+</html>
